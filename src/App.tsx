@@ -1,34 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import usePlaces from './hooks/usePlaces'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { isLoading, data, error, getSearchResults } = usePlaces()
+  console.log(data)
+  console.log(isLoading)
+  console.log(error)
+
+  async function handleChange(value: string) {
+    getSearchResults.current(value)
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className="flex flex-col min-h-screen font-Roboto bg-weather-primary">
+      <main className="container text-white">
+        <div className="pt-4 mb-8 relative">
+          <input
+            type="text"
+            onChange={(e) => handleChange(e.target.value)}
+            placeholder="Search for a city"
+            className="py-2 px-1 w-full bg-transparent border-b focus:border-weather-secondary focus:outline-none focus:shadow"
+          />
+          <ul className="absolute bg-weather-secondary text-white w-full shadow-md py-2 px-1 top-[66px]"></ul>
+        </div>
+        <div className="flex flex-col gap-4"></div>
+      </main>
+    </div>
   )
 }
 

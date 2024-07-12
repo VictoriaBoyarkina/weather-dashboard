@@ -1,10 +1,10 @@
-const API_KEY = 'b12d5ffcb958f9900ac68c6cda8dfb7a'
+const apiKey = import.meta.env.VITE_OPEN_MAP_API_KEY
 
-const BASE_URL = 'https://api.openweathermap.org/data/2.5/'
+const baseUrl = import.meta.env.VITE_OPEN_MAP_BASE_URL
 
-export const fetchWeatherData = async (startDate: Date, endDate) => {
+export const fetchWeatherData = async (startDate: Date, endDate: Date) => {
   const response = await fetch(
-    `${BASE_URL}onecall/timemachine?start=${startDate}&end=${endDate}&appid=${API_KEY}`
+    `${baseUrl}onecall/timemachine?start=${startDate}&end=${endDate}&appid=${apiKey}`
   )
   const data = await response.json()
   return data
