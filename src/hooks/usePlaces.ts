@@ -36,6 +36,7 @@ export default function usePlaces() {
         const transformedData = result.features.map((obj: any) =>
           transformData(obj)
         )
+        console.log(result)
         setData(transformedData)
       } catch (e) {
         setError((e as Error).message)
