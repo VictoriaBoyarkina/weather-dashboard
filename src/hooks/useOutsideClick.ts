@@ -1,7 +1,7 @@
-import { Dispatch, SetStateAction, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 function useOutsideClick<RefType extends HTMLElement>(
-  handler: Dispatch<SetStateAction<boolean>>,
+  handler: () => void,
   listenCapturing: boolean = true
 ) {
   const ref = useRef<RefType>(null)
@@ -14,7 +14,7 @@ function useOutsideClick<RefType extends HTMLElement>(
           e.target instanceof Node &&
           !ref.current.contains(e.target)
         ) {
-          handler(false)
+          handler()
         }
       }
       document.addEventListener('click', handleClick, listenCapturing)

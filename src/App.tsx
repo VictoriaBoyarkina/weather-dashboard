@@ -77,7 +77,10 @@ function App() {
     <div className="grid grid-rows-5 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
       <header className="col-span-4 row-span-1  px-5">
         <div className="flex flex-col">
-          <SearchPlace onSetCurrentPlace={setCurrentPlace} />
+          <SearchPlace
+            currentPlace={currentPlace}
+            onSetCurrentPlace={setCurrentPlace}
+          />
           <DataTypeSelector dataType={dataType} setDataType={setDataType} />
         </div>
       </header>

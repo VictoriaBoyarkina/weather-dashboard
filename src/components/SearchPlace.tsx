@@ -5,14 +5,23 @@ import { Place } from '../types'
 
 interface Props {
   onSetCurrentPlace: React.Dispatch<React.SetStateAction<Place | null>>
+  currentPlace: Place
 }
 
-export default function SearchPlace({ onSetCurrentPlace }: Props) {
+export default function SearchPlace({
+  currentPlace,
+  onSetCurrentPlace,
+}: Props) {
   const [value, setValue] = useState('')
   const { data, error, getSearchResults } = usePlaces()
   const [resultIsOpen, setResultIsOpen] = useState(false)
 
-  const ref = useOutsideClick<HTMLDivElement>(setResultIsOpen, true)
+  const ref = useOutsideClick<HTMLDivElement>(handleClickOutside, true)
+
+  function handleClickOutside() {
+    if (currentPlace) setValue(currentPlace.placeName)
+    setResultIsOpen(false)
+  }
 
   async function handleChange(value: string) {
     setValue(value)
@@ -23,21 +32,26 @@ export default function SearchPlace({ onSetCurrentPlace }: Props) {
   function handleClick(place: Place) {
     onSetCurrentPlace(place)
     setResultIsOpen(false)
+    setValue(place.placeName)
+  }
+
+  function handleFocus() {
     setValue('')
+    setResultIsOpen(true)
   }
 
   return (
-    <div className="pt-4 mb-8 relative" ref={ref}>
+    <div className="pt-4 mb-6 relative" ref={ref}>
       <input
         type="text"
         value={value}
         onChange={(e) => handleChange(e.target.value)}
-        onFocus={() => setResultIsOpen(true)}
+        onFocus={handleFocus}
         placeholder="Search for a city"
-        className="py-2 px-1 w-full bg-transparent border-b focus:border-weather-secondary focus:outline-none focus:shadow"
+        className="py-2 px-1 w-full bg-transparent border-b border-slate-300 text-blue-700 font-semibold focus:border-weather-secondary focus:outline-none focus:shadow mb-3"
       />
       {resultIsOpen && (
-        <ul className="absolute bg-weather-secondary text-white w-full shadow-md py-2 px-1 top-[66px]">
+        <ul className="absolute bg-slate-600 text-white w-full shadow-md py-2 px-1 top-[66px]">
           {error && <p>Sorry, something went wrong, please try again.</p>}
           {!error && data.length === 0 && (
             <p>No results match your query, try a different term.</p>
