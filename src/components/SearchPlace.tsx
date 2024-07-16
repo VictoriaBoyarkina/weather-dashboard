@@ -5,7 +5,7 @@ import { Place } from '../types'
 
 interface Props {
   onSetCurrentPlace: React.Dispatch<React.SetStateAction<Place | null>>
-  currentPlace: Place
+  currentPlace: Place | null
 }
 
 export default function SearchPlace({

@@ -1,18 +1,79 @@
-import * as d3 from 'd3' // we will need d3.js
+import * as d3 from 'd3'
+import { useEffect, useRef } from 'react'
 
-type LineChartProps = {
-  width: number
-  height: number
-  data: { x: number; y: number }[]
+type RawData = {
+  date: number
+  value: number
 }
 
-export default function Chart(({ width, height, data }: LineChartProps) {
+type LineChartProps = {
+  data: RawData[]
+  width?: number
+  height?: number
+  marginTop?: number
+  marginRight?: number
+  marginBottom?: number
+  marginLeft?: number
+}
+
+// type Data = {
+//   width: number
+//   height: number
+//   dataset: RawData[]
+//   XAxisClasses: string
+//   lineClass: string
+// }
+
+export default function Chart({
+  data,
+  width = 640,
+  height = 400,
+  marginTop = 20,
+  marginRight = 20,
+  marginBottom = 20,
+  marginLeft = 60,
+}: LineChartProps) {
+  // x axis function
+  const xvalues = data.map((i) => i.date)
+  console.log(d3.extent(xvalues))
+  const x = d3.scaleTime(d3.extent(xvalues), [marginLeft, width - marginRight])
+
+  // y axis function
+  const yvalues = data.map((i) => i.value)
+  const y = d3.scaleLinear(d3.extent(yvalues), [
+    height - marginBottom,
+    marginTop,
+  ])
+
+  // Line function
+  const line = d3
+    .line()
+    .x((d: RawData) => x(d.date))
+    .y((d: RawData) => y(d.value))
+
+  const gx = useRef()
+  const gy = useRef()
+
+  const xAxis = d3.axisBottom().scale(x).ticks(d3.utcDay.every(1))
+  const T = x.ticks(d3.utcDay.every(1))
+  const f = x.tickFormat(d3.utcFormat('%b %d'))
+  console.log(T)
+  console.log(T.map(f))
+  const yAxis = d3.axisLeft().scale(y)
+
+  useEffect(() => void d3.select(gx.current).call(xAxis), [xAxis])
+  useEffect(() => void d3.select(gy.current).call(yAxis), [yAxis])
+
   return (
-    <div>
-      <svg width={width} height={height}>
-        // render axes
-        // render all the <path>
-      </svg>
-    </div>
-  );
+    <svg width={width} height={height}>
+      <path fill="none" stroke="blue" strokeWidth="1.5" d={line(data)} />
+      <g ref={gx} transform={`translate(0,${height - marginBottom})`} />
+      <g ref={gy} transform={`translate(${marginLeft},0)`} />
+      <g fill="white" stroke="blue" strokeWidth="1.5">
+        {data.map((d, i) => (
+          <circle key={i} cx={x(i)} cy={y(d)} r="2.5" />
+        ))}
+      </g>
+    </svg>
+  )
 }

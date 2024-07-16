@@ -4,6 +4,7 @@ import { Place } from './types'
 import DataTypeSelector from './components/DataTypeSelector'
 import DateRangePicker from './components/DateRangePicker'
 import { fetchWeatherData } from './services/weatherAPI'
+import Chart from './components/Chart'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -28,8 +29,8 @@ function formatData(
 
   const result = dates.map((date, index) => {
     return {
-      y: data[index],
-      x: date,
+      date: new Date(date),
+      value: data[index],
     }
   })
   return result
@@ -42,7 +43,6 @@ function App() {
 
   // Place
   const [currentPlace, setCurrentPlace] = useState<Place | null>(null)
-  console.log(currentPlace)
 
   // Data type
   const [dataType, setDataType] = useState<string>('temperature')
@@ -62,7 +62,7 @@ function App() {
             dataType
           )
           const data = formatData(dataType, res)
-          console.log(data)
+          setData(data)
         } catch (e) {
           console.log(e)
         } finally {
@@ -85,7 +85,9 @@ function App() {
         </div>
       </header>
 
-      <main className="row-span-4 col-span-4"></main>
+      <main className="row-span-4 col-span-4">
+        <Chart data={data} startDate={startDate} endDate={endDate} />
+      </main>
       <aside className="row-span-5 p-5 flex flex-col items-center">
         <DateRangePicker
           startDate={startDate}
