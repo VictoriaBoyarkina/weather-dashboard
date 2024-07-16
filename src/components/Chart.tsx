@@ -16,17 +16,9 @@ type LineChartProps = {
   marginLeft?: number
 }
 
-// type Data = {
-//   width: number
-//   height: number
-//   dataset: RawData[]
-//   XAxisClasses: string
-//   lineClass: string
-// }
-
 export default function Chart({
   data,
-  width = 640,
+  width = 1000,
   height = 400,
   marginTop = 20,
   marginRight = 20,
@@ -51,19 +43,30 @@ export default function Chart({
     .x((d: RawData) => x(d.date))
     .y((d: RawData) => y(d.value))
 
-  const gx = useRef()
-  const gy = useRef()
+  const gx = useRef<SVGGElement>(null)
+  const gy = useRef<SVGGElement>(null)
 
-  const xAxis = d3.axisBottom().scale(x).ticks(d3.utcDay.every(1))
-  const T = x.ticks(d3.utcDay.every(1))
-  const f = x.tickFormat(d3.utcFormat('%b %d'))
-  console.log(T)
-  console.log(T.map(f))
+  const xAxis = d3.axisBottom().scale(x)
   const yAxis = d3.axisLeft().scale(y)
 
   useEffect(() => void d3.select(gx.current).call(xAxis), [xAxis])
-  useEffect(() => void d3.select(gy.current).call(yAxis), [yAxis])
+  useEffect(() => void d3.select(gy.current).call(yAxis)[yAxis])
 
+  useEffect(
+    () =>
+      void d3
+        .select(gy.current)
+        .call((g) =>
+          g
+            .append('text')
+            .attr('x', -30)
+            .attr('y', 10)
+            .attr('fill', 'currentColor')
+            .attr('text-anchor', 'start')
+            .text('Temperature (°C)')
+        ),
+    []
+  )
   return (
     <svg width={width} height={height}>
       <path fill="none" stroke="blue" strokeWidth="1.5" d={line(data)} />
