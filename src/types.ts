@@ -3,3 +3,8 @@ export type Place = {
   placeName: string
   coordinates: { lat: string; lng: string }
 }
+
+export type RawData = {
+  date: Date
+  value: number
+}

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import SearchPlace from './components/SearchPlace'
-import { Place } from './types'
+import { Place, RawData } from './types'
 import DataTypeSelector from './components/DataTypeSelector'
 import DateRangePicker from './components/DateRangePicker'
 import { fetchWeatherData } from './services/weatherAPI'
-import Chart from './components/Chart'
+import LinearChart from './components/LinearChart'
+import Histogram from './components/Histogram'
+import RadialChart from './components/RadialChart'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -12,25 +14,25 @@ const dataTypeMapping = {
   wind: 'wind_speed_10m_max',
 } as Record<string, string>
 
-const units = {
-  temperature: '°C',
-  precipitation: 'millimeter',
-  wind: 'km/h',
-}
+// const units = {
+//   temperature: '°C',
+//   precipitation: 'millimeter',
+//   wind: 'km/h',
+// }
 
 function formatData(
   dataType: string,
   response: {
     daily: Record<string, string[]>
   }
-): Record<string, string>[] {
+): RawData[] {
   const dates = response.daily.time
   const data = response.daily[dataTypeMapping[dataType]]
 
   const result = dates.map((date, index) => {
     return {
       date: new Date(date),
-      value: data[index],
+      value: Number(data[index]),
     }
   })
   return result
@@ -48,7 +50,7 @@ function App() {
   const [dataType, setDataType] = useState<string>('temperature')
 
   const [isLoading, setIsloading] = useState(false)
-  const [data, setData] = useState([])
+  const [data, setData] = useState<RawData[]>()
 
   useEffect(() => {
     async function fetchData() {
@@ -86,7 +88,10 @@ function App() {
       </header>
 
       <main className="row-span-4 col-span-4">
-        <Chart data={data} startDate={startDate} endDate={endDate} />
+        {/* <LinearChart data={data} /> */}
+        {data && <RadialChart data={data} />}
+
+        {/* <Histogram data={data} /> */}
       </main>
       <aside className="row-span-5 p-5 flex flex-col items-center">
         <DateRangePicker
