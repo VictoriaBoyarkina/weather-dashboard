@@ -29,12 +29,14 @@ function formatData(
   const dates = response.daily.time
   const data = response.daily[dataTypeMapping[dataType]]
 
-  const result = dates.map((date, index) => {
-    return {
-      date: new Date(date),
-      value: Number(data[index]),
-    }
-  })
+  const result = dates.reduce((acc: RawData[], date, index) => {
+    if (data[index])
+      acc.push({
+        date: new Date(date),
+        value: Number(data[index]),
+      })
+    return acc
+  }, [])
   return result
 }
 
@@ -87,11 +89,19 @@ function App() {
         </div>
       </header>
 
-      <main className="row-span-4 col-span-4">
-        {/* <LinearChart data={data} /> */}
-        {data && <RadialChart data={data} />}
+      <main className="row-span-4 col-span-4 px-5 text-slate-500">
+        {data && data.length === 0 && <p>Could find any data</p> }
+        {data && data.length !== 0 && dataType === 'temperature' && (
+          <LinearChart data={data} />
+        )}
 
-        {/* <Histogram data={data} /> */}
+        {data && data.length !== 0 && dataType === 'wind' && (
+          <RadialChart data={data} />
+        )}
+
+        {data && data.length !== 0 && dataType === 'precipitation' && (
+          <Histogram data={data} />
+        )}
       </main>
       <aside className="row-span-5 p-5 flex flex-col items-center">
         <DateRangePicker

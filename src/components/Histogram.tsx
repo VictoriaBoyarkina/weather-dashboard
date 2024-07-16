@@ -1,16 +1,16 @@
-import * as d3 from 'd3'
-import { useEffect, useRef } from 'react'
-import { RawData } from '../types'
+import * as d3 from 'd3';
+import { useEffect, useRef } from 'react';
+import { RawData } from '../types';
 
 type LineChartProps = {
-  data: RawData[]
-  width?: number
-  height?: number
-  marginTop?: number
-  marginRight?: number
-  marginBottom?: number
-  marginLeft?: number
-}
+  data: RawData[],
+  width?: number,
+  height?: number,
+  marginTop?: number,
+  marginRight?: number,
+  marginBottom?: number,
+  marginLeft?: number,
+};
 
 export default function Histogram({
   data,
@@ -21,70 +21,94 @@ export default function Histogram({
   marginBottom = 20,
   marginLeft = 60,
 }: LineChartProps) {
-  // x axis function
-  const xvalues = data.map((i) => i.date)
-  const x = d3.scaleTime(d3.extent(xvalues), [marginLeft, width - marginRight])
+  const xvalues = data.map(i => i.date);
+  const xScale = d3.scaleTime()
+    .domain(d3.extent(xvalues) as [Date, Date])
+    .range([marginLeft, width - marginRight]);
 
-  // y axis function
-  const yvalues = data.map((i) => i.value)
-  const y = d3.scaleLinear(d3.extent(yvalues), [
-    height - marginBottom,
-    marginTop,
-  ])
+  const yScale = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value) || 0])
+    .range([height - marginBottom, marginTop]);
 
-  console.log(data)
+  // Bin the data by day correctly
+  const bins = d3.bin<RawData, Date>()
+    .value(d => d.date)
+    .thresholds(d3.timeDays(d3.min(data, d => d.date)!, d3.max(data, d => d.date)!))
+    (data);
 
-  // Bin the data.
-  const bins = d3
-    .bin()
-    .thresholds(data.length)
-    .value((d) => d.value)(data)
+  const gx = useRef<SVGGElement>(null);
+  const gy = useRef<SVGGElement>(null);
+  const barsRef = useRef<SVGGElement>(null);
 
-  const gx = useRef<SVGGElement>(null)
-  const gy = useRef<SVGGElement>(null)
-  const bar = useRef<SVGGElement>(null)
+  const xAxis = d3.axisBottom<Date>(xScale);
+  const yAxis = d3.axisLeft<number>(yScale);
 
-  const xAxis = d3.axisBottom().scale(x)
-  const yAxis = d3.axisLeft().scale(y)
+  useEffect(() => {
+    if (gx.current) {
+      d3.select(gx.current).call(xAxis);
+    }
+  }, [xAxis]);
 
-  useEffect(() => void d3.select(gx.current).call(xAxis), [xAxis])
-  useEffect(() => void d3.select(gy.current).call(yAxis)[yAxis])
+  useEffect(() => {
+    if (gy.current) {
+      d3.select(gy.current).call(yAxis);
+    }
+  }, [yAxis]);
 
-  console.log(bins)
-  useEffect(
-    () =>
-      void d3
-        .select(bar.current)
-        .attr('fill', 'steelblue')
-        .selectAll()
+  useEffect(() => {
+    if (barsRef.current) {
+      const svgBars = d3.select(barsRef.current);
+
+      svgBars
+        .selectAll('rect')
         .data(bins)
         .join('rect')
-        .attr('x', (d) => {
-          return x(d.x0) + 1
+        .attr('x', d => {
+          const xPos = xScale(d.x0!);
+          console.log('x:', xPos);
+          return xPos;
         })
-        .attr('width', (d) => {
-          return x(d.x1) - x(d.x0) - 1
+        .attr('width', d => {
+          const width = Math.max(0, xScale(d.x1!) - xScale(d.x0!) - 1);
+          console.log('width:', width);
+          return width;
         })
-        .attr('y', (d) => {
-          return y(d.length)
+        .attr('y', d => {
+          const yPos = yScale(d.length);
+          console.log('y:', yPos);
+          return yPos;
         })
-        .attr('height', (d) => {
-          return y(0) - y(d.length)
+        .attr('height', d => {
+          const height = Math.max(0, yScale(0) - yScale(d.length));
+          console.log('height:', height);
+          return height;
         })
-        .style('fill', '#69b3a2'),
+        .attr('fill', '#69b3a2');
+    }
+  }, [bins, xScale, yScale]);
 
-    [bins, x, y]
-  )
+  useEffect(() => {
+    console.log('Bins:', bins);
+    bins.forEach(bin => {
+      console.log('Bin:', bin);
+      console.log('x0:', bin.x0, 'x1:', bin.x1);
+      console.log('xScale(x0):', xScale(bin.x0!), 'xScale(x1):', xScale(bin.x1!));
+    });
+  }, [bins]);
+
+  useEffect(() => {
+    console.log('xScale domain:', xScale.domain());
+    console.log('xScale range:', xScale.range());
+    console.log('yScale domain:', yScale.domain());
+    console.log('yScale range:', yScale.range());
+  }, [xScale, yScale]);
+
   return (
     <svg width={width} height={height}>
       <g ref={gx} transform={`translate(0,${height - marginBottom})`} />
       <g ref={gy} transform={`translate(${marginLeft},0)`} />
-      <g ref={bar} />
-      <g fill="white" stroke="blue" strokeWidth="1.5">
-        {data.map((d, i) => (
-          <circle key={i} cx={x(i)} cy={y(d)} r="2.5" />
-        ))}
-      </g>
+      <g ref={barsRef} />
     </svg>
-  )
+  );
 }
+
