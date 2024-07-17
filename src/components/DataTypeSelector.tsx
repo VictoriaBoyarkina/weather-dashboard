@@ -2,6 +2,7 @@ import DataSelectorItem from './DataSelectorItem'
 import { WiStrongWind } from 'react-icons/wi'
 import { WiRain } from 'react-icons/wi'
 import { WiThermometer } from 'react-icons/wi'
+import { DataType } from '../types'
 
 const dataTypes = [
   {
@@ -23,12 +24,12 @@ const dataTypes = [
 
 interface Props {
   dataType: string
-  setDataType: React.Dispatch<React.SetStateAction<string>>
+  setDataType: React.Dispatch<React.SetStateAction<DataType>>
 }
 
 export default function DataTypeSelector({ dataType, setDataType }: Props) {
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setDataType(e.target.value)
+    setDataType(e.target.value as DataType)
   }
 
   return (

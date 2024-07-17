@@ -9,10 +9,17 @@ export type RawData = {
   value: number
 }
 
+export type Data = {
+  data: RawData[]
+  favourite: boolean
+}
+
 export type Chart = {
   id: string
   period: [Date, Date]
-  dataType: 'temperature' | 'wind' | 'precipitation'
+  dataType: DataType
   place: Place
-  data: RawData[]
+  data: Data
 }
+
+export type DataType = 'temperature' | 'wind' | 'precipitation'
