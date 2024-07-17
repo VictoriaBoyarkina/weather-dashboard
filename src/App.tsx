@@ -7,6 +7,10 @@ import { fetchWeatherData } from './services/weatherAPI'
 import LinearChart from './components/LinearChart'
 import Histogram from './components/Histogram'
 import RadialChart from './components/RadialChart'
+import ExportButton from './components/ExportButton'
+import Loader from './components/Loader'
+import SaveButton from './components/SaveButton'
+import Favorites from './components/Favorites'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -78,8 +82,8 @@ function App() {
   }, [currentPlace, startDate, endDate, dataType])
 
   return (
-    <div className="grid grid-rows-5 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
-      <header className="col-span-4 row-span-1  px-5">
+    <div className="grid grid-rows-5 grid-cols-6 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
+      <header className="row-span-1 col-span-4 px-5">
         <div className="flex flex-col">
           <SearchPlace
             currentPlace={currentPlace}
@@ -90,26 +94,47 @@ function App() {
       </header>
 
       <main className="row-span-4 col-span-4 px-5 text-slate-500">
-        {data && data.length === 0 && <p>Could find any data</p> }
-        {data && data.length !== 0 && dataType === 'temperature' && (
-          <LinearChart data={data} />
-        )}
-
-        {data && data.length !== 0 && dataType === 'wind' && (
-          <RadialChart data={data} />
-        )}
-
-        {data && data.length !== 0 && dataType === 'precipitation' && (
-          <Histogram data={data} />
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <div className="flex flex-col gap-y-6">
+            {data && data.length === 0 && <p>Could find any data</p>}
+            {data && data.length !== 0 && dataType === 'temperature' && (
+              <LinearChart data={data} />
+            )}
+            {data && data.length !== 0 && dataType === 'wind' && (
+              <RadialChart data={data} />
+            )}
+            {data && data.length !== 0 && dataType === 'precipitation' && (
+              <Histogram data={data} />
+            )}
+            {data && data.length && (
+              <div className="flex w-full ml-[60px] gap-x-5">
+                <ExportButton
+                  data={data}
+                  dataType={dataType}
+                  period={[startDate, endDate]}
+                  place={currentPlace!}
+                />
+                <SaveButton
+                  data={data}
+                  dataType={dataType}
+                  period={[startDate, endDate]}
+                  place={currentPlace!}
+                />
+              </div>
+            )}
+          </div>
         )}
       </main>
-      <aside className="row-span-5 p-5 flex flex-col items-center">
+      <aside className="row-span-5 col-span-2 p-5 gap-y-7 flex flex-col items-center">
         <DateRangePicker
           startDate={startDate}
           endDate={endDate}
           setStartDate={setStartDate}
           setEndDate={setEndDate}
         />
+        <Favorites />
       </aside>
     </div>
   )

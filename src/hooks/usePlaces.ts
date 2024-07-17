@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef, useState } from 'react'
 import { fetchPlacesData } from '../services/locationApi'
-
-type Place = {
-  id: string
-  placeName: string
-}
+import { Place } from '../types'
 
 function transformData(data: any) {
   return {

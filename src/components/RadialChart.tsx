@@ -14,15 +14,14 @@ type LineChartProps = {
 
 export default function RadialChart({
   data,
-  width = 1000,
+  width = 800,
   height = 600,
 }: LineChartProps) {
-  console.log(data)
-  const innerRadius = (0.2 * width) / 2
-  const outerRadius = (0.5 * width) / 2
+  const innerRadius = (0.3 * height) / 2
+  const outerRadius = (0.9 * height) / 2
 
   const getColorDomain = () => {
-    const extent = d3.extent(data, (d) => d.value),
+    const extent = d3.extent(data, (d) => d.value) as [number, number],
       interpolated = d3.interpolate(...extent)
 
     return d3.quantize(interpolated, 7)
@@ -42,8 +41,7 @@ export default function RadialChart({
 
   const getYDomain = () => {
     const min = d3.min(data, (d) => d.value),
-      max = d3.max(data, (d) => d.value) + 5
-      console.log(max)
+      max = (d3.max(data, (d) => d.value) as number) + 5
     return [min, max]
   }
 
@@ -51,7 +49,7 @@ export default function RadialChart({
 
   const yScale = d3
     .scaleLinear()
-    .domain(yDomain)
+    .domain(yDomain as [number, number])
     .range([innerRadius, outerRadius])
 
   const arc = d3
@@ -65,7 +63,7 @@ export default function RadialChart({
 
   const container = useRef<SVGGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
-  
+
   const dateFormatter = d3.timeFormat('%b %d')
 
   useEffect(() => {
@@ -84,9 +82,9 @@ export default function RadialChart({
         tooltip.transition().duration(200).style('opacity', 0.9)
         tooltip
           .html(
-            `<strong>Date:</strong> ${
-              dateFormatter(d.date)
-            }<br><strong>Value:</strong> ${d.value}`
+            `<strong>Date:</strong> ${dateFormatter(
+              d.date
+            )}<br><strong>Value:</strong> ${d.value}`
           )
           .style('left', `${event.pageX}px`)
           .style('top', `${event.pageY - 120}px`)
@@ -95,11 +93,10 @@ export default function RadialChart({
         const tooltip = d3.select(tooltipRef.current)
         tooltip.transition().duration(500).style('opacity', 0)
       })
-  }, [arc, color, data])
+  }, [arc, color, data, dateFormatter])
 
   const gx = useRef<SVGGElement>(null)
   const gy = useRef<SVGGElement>(null)
-
 
   const xAxis = useCallback(
     (g) =>
@@ -136,76 +133,78 @@ export default function RadialChart({
               )
           )
       ),
-    [innerRadius, outerRadius, data]
+    []
   )
 
-  const yAxis = (g) =>
-    g
-      .attr('text-anchor', 'middle')
-      .call((g) =>
-        g
-          .append('text')
-          .attr('text-anchor', 'end')
-          .attr('x', '-0.5em')
-          .attr('y', (d) => -yScale(yScale.ticks(5).pop()) - 10)
-          .attr('dy', '-1em')
-          .style('fill', '#1a1a1a')
-          .text('Wind km/h')
-          .attr('transform', `translate(40,0)`)
-          .style('font-family', 'sans-serif')
-          .style('font-size', 14)
-      )
-      .call((g) =>
-        g
-          .selectAll('g')
-          .data(yScale.ticks(5))
-          .join('g')
-          .attr('fill', 'none')
-          .call((g) =>
-            g
-              .append('circle')
-              .style('stroke', '#aaa')
-              .style('stroke-opacity', 0.5)
-              .style('font-family', 'sans-serif')
-              .style('font-size', 12)
-              .attr('r', yScale)
-          )
-          .call((g) =>
-            g
-              .append('text')
-              .attr('y', (d) => -yScale(d))
-              .attr('dy', '0.35em')
-              .style('stroke-width', 5)
-              .style('font-size', 10)
-              .style('fill', '#1a1a1a')
-              .text(yScale.tickFormat(6, 's'))
-              .clone(true)
-              .style('stroke', 'none')
-          )
-      )
+  const yAxis = useCallback(
+    (g) =>
+      g
+        .attr('text-anchor', 'middle')
+        .call((g) =>
+          g
+            .append('text')
+            .attr('text-anchor', 'end')
+            .attr('x', '-0.5em')
+            .attr('y', (d) => -yScale(yScale.ticks(5).pop() as number) - 10)
+            .attr('dy', '-1em')
+            .style('fill', '#1a1a1a')
+            .text('Wind km/h')
+            .attr('transform', `translate(40,0)`)
+            .style('font-family', 'sans-serif')
+            .style('font-size', 14)
+        )
+        .call((g) =>
+          g
+            .selectAll('g')
+            .data(yScale.ticks(5))
+            .join('g')
+            .attr('fill', 'none')
+            .call((g) =>
+              g
+                .append('circle')
+                .style('stroke', '#aaa')
+                .style('stroke-opacity', 0.5)
+                .style('font-family', 'sans-serif')
+                .style('font-size', 12)
+                .attr('r', yScale)
+            )
+            .call((g) =>
+              g
+                .append('text')
+                .attr('y', (d: number) => -yScale(d))
+                .attr('dy', '0.35em')
+                .style('stroke-width', 5)
+                .style('font-size', 10)
+                .style('fill', '#1a1a1a')
+                .text(yScale.tickFormat(6, 's'))
+                .clone(true)
+                .style('stroke', 'none')
+            )
+        ),
+    [yScale]
+  )
 
   useEffect(() => {
     const gxElement = d3.select(gx.current)
-    gxElement.selectAll('*').remove() // Clear previous x axis elements
+    gxElement.selectAll('*').remove()
     gxElement
       .attr('transform', `translate(${width / 2}, ${height / 2})`)
       .call(xAxis)
-  }, [xAxis])
+  }, [height, width, xAxis])
 
   useEffect(() => {
     const gyElement = d3.select(gy.current)
-    gyElement.selectAll('*').remove() // Clear previous y axis elements
+    gyElement.selectAll('*').remove()
     gyElement
       .attr('transform', `translate(${width / 2}, ${height / 2})`)
       .call(yAxis)
-  }, [yAxis])
+  }, [height, width, yAxis])
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <svg width={width} height={height}>
         <g
           ref={container}
-          className="container"
           transform={`translate(${width / 2}, ${height / 2})`}
         />
         <g ref={gx} />
