@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SearchPlace from './components/SearchPlace'
-import { Chart, Data, DataType, Place, RawData } from './types'
+import { Chart, DataType, Place, RawData } from './types'
 import DataTypeSelector from './components/DataTypeSelector'
 import DateRangePicker from './components/DateRangePicker'
 import { fetchWeatherData } from './services/weatherAPI'
@@ -14,6 +14,8 @@ import Favorites from './components/Favorites'
 import ChartItem from './components/ChartItem'
 import { useLocalStorage } from './context/LocalStorageProvider'
 import uniqid from 'uniqid'
+
+import ChartHeaders from './components/ChartHeaders'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -32,7 +34,7 @@ function formatData(
   response: {
     daily: Record<string, string[]>
   }
-): Data {
+): RawData[] {
   const dates = response.daily.time
   const data = response.daily[dataTypeMapping[dataType]]
 
@@ -44,7 +46,7 @@ function formatData(
       })
     return acc
   }, [])
-  return { data: result, favourite: false }
+  return result
 }
 
 function App() {
@@ -61,13 +63,19 @@ function App() {
   // Loading
   const [isLoading, setIsloading] = useState(false)
 
-  // Current data
-  const [data, setData] = useState<Data>({ data: [], favourite: false })
-  console.log(data.favourite)
+  // Current chart
+  const [chart, setChart] = useState<Chart | null>(null)
 
-  // Current chart id
-  const [chartId, setChartId] = useState<string>('')
-  console.log(chartId)
+  useEffect(
+    function () {
+      if (chart && chart?.dataType !== dataType) {
+        setChart(null)
+      }
+    },
+    [dataType, chart, currentPlace]
+  )
+
+  console.log(chart)
 
   useEffect(() => {
     async function fetchData() {
@@ -81,7 +89,13 @@ function App() {
             dataType
           )
           const data = formatData(dataType, res)
-          setData(data)
+          const chart = {
+            period: [startDate, endDate] as [Date, Date],
+            dataType,
+            place: currentPlace!,
+            data,
+          }
+          setChart(chart)
         } catch (e) {
           console.log(e)
         } finally {
@@ -95,70 +109,67 @@ function App() {
   const { saveChart, deleteChart } = useLocalStorage()
 
   function handleSave() {
-    const id = uniqid()
-    const chart = {
-      id,
-      period: [startDate, endDate] as [Date, Date],
-      dataType,
-      place: currentPlace!,
-      data: { ...data, favourite: true },
-    }
-    setData({ ...data, favourite: true })
-    setChartId(id)
-    console.log(chart)
-    saveChart(chart)
+    chart!.id = uniqid()
+    saveChart(chart!)
   }
 
   function handleDelete() {
-    deleteChart(chartId)
+    deleteChart(chart?.id)
   }
 
   return (
-    <div className="grid grid-rows-5 grid-cols-6 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
+    <div className="grid grid-rows-6 grid-cols-6 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
       <header className="row-span-1 col-span-4 px-5">
         <div className="flex flex-col">
           <SearchPlace
             currentPlace={currentPlace}
             onSetCurrentPlace={setCurrentPlace}
+            chart={chart}
           />
           <DataTypeSelector dataType={dataType} setDataType={setDataType} />
         </div>
       </header>
 
-      <main className="row-span-4 col-span-4 px-5 text-slate-500">
+      <main className="row-span-5 col-span-4 px-5 text-slate-500">
         {isLoading ? (
           <Loader />
         ) : (
           <div className="flex flex-col gap-y-6">
-            {currentPlace && data && <p>Could find any data</p>}
-            {data.data.length !== 0 && dataType === 'temperature' && (
-              <LinearChart data={data.data} />
+            {!currentPlace && !chart && <p>Please, choose location</p>}
+            {currentPlace && chart?.data.length === 0 && (
+              <p>Could find any data</p>
             )}
-            {data.data.length !== 0 && dataType === 'wind' && (
-              <RadialChart data={data.data} />
-            )}
-            {data.data.length !== 0 && dataType === 'precipitation' && (
-              <Histogram data={data.data} />
-            )}
-            {data.data.length !== 0 && (
-              <div className="flex w-full ml-[60px] gap-x-5">
-                <ExportButton
-                  data={data.data}
-                  dataType={dataType}
-                  period={[startDate, endDate]}
-                  place={currentPlace!}
-                />
-                <SaveButton
-                  onClick={data.favourite ? handleDelete : handleSave}
-                >
-                  {data.favourite ? 'Delete chart' : 'Save chart'}
-                </SaveButton>
-              </div>
+            {chart && chart?.data?.length !== 0 && (
+              <>
+                <ChartHeaders chart={chart!} />
+                <>
+                  {dataType === 'temperature' && (
+                    <LinearChart data={chart!.data} />
+                  )}
+                  {dataType === 'wind' && (
+                    <RadialChart data={chart!.data} />
+                  )}
+                  {dataType === 'precipitation' && (
+                    <Histogram data={chart!.data} />
+                  )}
+                </>
+                <div className="flex w-full ml-[60px] gap-x-5">
+                  <ExportButton
+                    data={chart!.data}
+                    dataType={dataType}
+                    period={[startDate, endDate]}
+                    place={currentPlace!}
+                  />
+                  <SaveButton onClick={chart.id ? handleDelete : handleSave}>
+                    {chart.id ? 'Delete chart' : 'Save chart'}
+                  </SaveButton>
+                </div>
+              </>
             )}
           </div>
         )}
       </main>
-      <aside className="row-span-5 col-span-2 p-5 gap-y-7 flex flex-col items-center">
+      <aside className="row-span-6 col-span-2 p-5 gap-y-7 flex flex-col items-center">
         <DateRangePicker
           startDate={startDate}
           endDate={endDate}
@@ -168,11 +179,13 @@ function App() {
         <Favorites
           render={(item: Chart) => (
             <ChartItem
+              setCurrentPlace={setCurrentPlace}
+              setEndDate={setEndDate}
+              setStartDate={setStartDate}
               key={item.id}
               chart={item}
-              setData={setData}
               setDataType={setDataType}
-              setChartId={setChartId}
+              setChart={setChart}
             />
           )}
         />

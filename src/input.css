@@ -21,3 +21,16 @@
     border-color: #2563eb;
   }
 }
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgba(199, 191, 191, 0.753);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.13);
+}

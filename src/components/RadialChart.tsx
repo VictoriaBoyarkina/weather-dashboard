@@ -149,9 +149,9 @@ export default function RadialChart({
             .attr('dy', '-1em')
             .style('fill', '#1a1a1a')
             .text('Wind km/h')
-            .attr('transform', `translate(40,0)`)
+            .attr('transform', `translate(30,0)`)
             .style('font-family', 'sans-serif')
-            .style('font-size', 14)
+            .style('font-size', 10)
         )
         .call((g) =>
           g

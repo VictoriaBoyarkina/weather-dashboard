@@ -31,38 +31,34 @@ export default function LocalStorageProvider({ children }: Props) {
     if (favoriteCharts) {
       const array = JSON.parse(favoriteCharts)
       console.log(array)
-      // array.forEach((chart: Chart) =>
-      //   chart.data.data.forEach((i) => (i.date = new Date(i.date)))
-      // )
+      array.forEach((chart: Chart) =>
+        chart.data.forEach((i) => (i.date = new Date(i.date)))
+      )
       setCharts(array)
     }
   }, [setCharts])
 
   function saveChart(chart: Chart) {
     const favoriteCharts = localStorage.getItem('favorite')
-    if (favoriteCharts) {
-      const array = JSON.parse(favoriteCharts)
-      localStorage.setItem('favorite', JSON.stringify(array))
-      array.forEach((chart: Chart) =>
-        chart.data.data.forEach((i) => (i.date = new Date(i.date)))
-      )
-      setCharts(array)
-    } else {
-      const array = []
-      console.log(chart)
-      array.push(chart)
-      localStorage.setItem('favorite', JSON.stringify(array))
-      setCharts(array)
-    }
+    const array = favoriteCharts ? JSON.parse(favoriteCharts) : []
+    array.push(chart)
+    console.log(array)
+    localStorage.setItem('favorite', JSON.stringify(array))
+    array.forEach((chart: Chart) =>
+      chart.data.forEach((i) => (i.date = new Date(i.date)))
+    )
+    console.log(array)
+    setCharts(array)
   }
 
   function deleteChart(id: string) {
     const favoriteCharts = localStorage.getItem('favorite')
+    console.log(favoriteCharts)
     const array = JSON.parse(favoriteCharts!)
     const filtredCharts = array.filter((chart: Chart) => chart.id !== id)
     localStorage.setItem('favorite', JSON.stringify(filtredCharts))
     filtredCharts.forEach((chart: Chart) =>
-      chart.data.data.forEach((i) => (i.date = new Date(i.date)))
+      chart.data.forEach((i) => (i.date = new Date(i.date)))
     )
     setCharts(filtredCharts)
   }

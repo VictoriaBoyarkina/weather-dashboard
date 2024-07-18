@@ -1,24 +1,25 @@
 import * as d3 from 'd3'
-import { Chart, Data, DataType } from '../types'
+import { Chart, DataType, Place } from '../types'
+import capitalizeFirstLetter from '../utils/capitalize'
 
 interface Props {
   chart: Chart
-  setData: React.Dispatch<React.SetStateAction<Data>>
   setDataType: React.Dispatch<React.SetStateAction<DataType>>
-  setChartId: React.Dispatch<React.SetStateAction<string>>
-}
-
-function capitalizeFirstLetter(string: string) {
-  return string.charAt(0).toUpperCase() + string.slice(1)
+  setChart: React.Dispatch<React.SetStateAction<Chart | null>>
+  setCurrentPlace: React.Dispatch<React.SetStateAction<Place | null>>
+  setEndDate: React.Dispatch<React.SetStateAction<Date>>
+  setStartDate: React.Dispatch<React.SetStateAction<Date>>
 }
 
 const formatTime = d3.utcFormat('%B %d, %Y')
 
 export default function ChartItem({
   chart,
-  setData,
   setDataType,
-  setChartId,
+  setChart,
+  setCurrentPlace,
+  setStartDate,
+  setEndDate,
 }: Props) {
   const { place, period, dataType } = chart
 
@@ -28,9 +29,11 @@ export default function ChartItem({
   ]
 
   function handleClick() {
-    setData(chart.data)
+    // setCurrentPlace(chart.place)
+    setChart(chart)
     setDataType(chart.dataType)
-    setChartId(chart.id)
+    // setStartDate(new Date(chart.period[0]))
+    // setEndDate(new Date(chart.period[1]))
   }
 
   return (

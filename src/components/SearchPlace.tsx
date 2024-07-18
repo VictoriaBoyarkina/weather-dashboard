@@ -1,20 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import usePlaces from '../hooks/usePlaces'
 import useOutsideClick from '../hooks/useOutsideClick'
-import { Place } from '../types'
+import { Chart, Place } from '../types'
 
 interface Props {
   onSetCurrentPlace: React.Dispatch<React.SetStateAction<Place | null>>
   currentPlace: Place | null
+  chart: Chart | null
 }
 
 export default function SearchPlace({
   currentPlace,
   onSetCurrentPlace,
+  chart,
 }: Props) {
   const [value, setValue] = useState('')
   const { data, error, getSearchResults } = usePlaces()
   const [resultIsOpen, setResultIsOpen] = useState(false)
+
+  // useEffect(
+  //   function () {
+  //     if (chart) setValue(chart.place.placeName)
+  //   },
+  //   [chart]
+  // )
 
   const ref = useOutsideClick<HTMLDivElement>(handleClickOutside, true)
 

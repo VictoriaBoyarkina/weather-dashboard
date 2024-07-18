@@ -17,7 +17,9 @@ export default function Favorites({ render }: Props) {
       </div>
       <div className="pt-4  text-slate-600">
         {charts.length ? (
-          <ul className="flex flex-col gap-y-3">{charts?.map(render)}</ul>
+          <ul className="flex flex-col  gap-y-3 overflow-y-auto max-h-[600px] px-1">
+            {charts?.map(render)}
+          </ul>
         ) : (
           <p className="text-center text-xs">
             You don't have any favorite charts yet. Save one by clicking on{' '}
