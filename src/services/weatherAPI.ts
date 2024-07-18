@@ -6,6 +6,8 @@ const dataTypeMapping = {
   wind: 'wind_speed_10m_max',
 } as Record<string, string>
 
+const baseUrl = import.meta.env.VITE_OPEN_METEO_URL
+
 export const fetchWeatherData = async (
   startDate: Date,
   endDate: Date,
@@ -20,7 +22,7 @@ export const fetchWeatherData = async (
   const queryData = dataTypeMapping[dataType]
 
   const response = await fetch(
-    `https://archive-api.open-meteo.com/v1/archive?latitude=${coordinates.lat}&longitude=${coordinates.lng}&start_date=${formattedStartDate}&end_date=${formattedEndDate}&daily=${queryData}&timezone=Europe%2FMoscow`
+    `${baseUrl}archive?latitude=${coordinates.lat}&longitude=${coordinates.lng}&start_date=${formattedStartDate}&end_date=${formattedEndDate}&daily=${queryData}&timezone=Europe%2FMoscow`
   )
   const data = await response.json()
   return data

@@ -21,7 +21,6 @@ export default function Histogram({
   marginBottom = 20,
   marginLeft = 60,
 }: LineChartProps) {
-  console.log(data)
   const xvalues = data.map((i) => i.date)
   const xScale = d3
     .scaleTime()
@@ -55,7 +54,7 @@ export default function Histogram({
   }, [xAxis])
 
   useEffect(() => {
-    const gyElement = d3.select(gy.current)
+    const gyElement = d3.select(gy.current as SVGGElement)
     gyElement.selectAll('*').remove()
     gyElement
       .call(yAxis)

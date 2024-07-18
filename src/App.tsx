@@ -66,6 +66,9 @@ function App() {
   // Current chart
   const [chart, setChart] = useState<Chart | null>(null)
 
+  // Error
+  const [error, setError] = useState('')
+
   useEffect(
     function () {
       if (chart && chart?.dataType !== dataType) {
@@ -75,10 +78,9 @@ function App() {
     [dataType, chart, currentPlace]
   )
 
-  console.log(chart)
-
   useEffect(() => {
     async function fetchData() {
+      setError('')
       if (currentPlace) {
         setIsloading(true)
         try {
@@ -96,8 +98,9 @@ function App() {
             data,
           }
           setChart(chart)
-        } catch (e) {
-          console.log(e)
+        } catch {
+          setError("Couldn't fetch the data")
+          setChart(null)
         } finally {
           setIsloading(false)
         }
@@ -114,6 +117,13 @@ function App() {
   }
 
   function handleDelete() {
+    const newChart = {
+      period: chart!.period,
+      dataType: chart!.dataType,
+      place: chart!.place,
+      data: chart!.data,
+    }
+    setChart(newChart)
     deleteChart(chart?.id)
   }
 
@@ -135,6 +145,7 @@ function App() {
           <Loader />
         ) : (
           <div className="flex flex-col gap-y-6">
+            {error && <p>{error}</p>}
             {!currentPlace && !chart && <p>Please, choose location</p>}
             {currentPlace && chart?.data.length === 0 && (
               <p>Could find any data</p>
@@ -146,20 +157,13 @@ function App() {
                   {dataType === 'temperature' && (
                     <LinearChart data={chart!.data} />
                   )}
-                  {dataType === 'wind' && (
-                    <RadialChart data={chart!.data} />
-                  )}
+                  {dataType === 'wind' && <RadialChart data={chart!.data} />}
                   {dataType === 'precipitation' && (
                     <Histogram data={chart!.data} />
                   )}
                 </>
                 <div className="flex w-full ml-[60px] gap-x-5">
-                  <ExportButton
-                    data={chart!.data}
-                    dataType={dataType}
-                    period={[startDate, endDate]}
-                    place={currentPlace!}
-                  />
+                  <ExportButton chart={chart} />
                   <SaveButton onClick={chart.id ? handleDelete : handleSave}>
                     {chart.id ? 'Delete chart' : 'Save chart'}
                   </SaveButton>
@@ -180,12 +184,11 @@ function App() {
           render={(item: Chart) => (
             <ChartItem
               setCurrentPlace={setCurrentPlace}
-              setEndDate={setEndDate}
-              setStartDate={setStartDate}
               key={item.id}
               chart={item}
               setDataType={setDataType}
               setChart={setChart}
+              setError={setError}
             />
           )}
         />

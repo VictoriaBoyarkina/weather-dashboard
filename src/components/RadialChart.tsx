@@ -2,6 +2,8 @@ import * as d3 from 'd3'
 import { useCallback, useEffect, useRef } from 'react'
 import { RawData } from '../types'
 
+type G = d3.Selection<SVGGElement | null, unknown, null, undefined>
+
 type LineChartProps = {
   data: RawData[]
   width?: number
@@ -99,7 +101,7 @@ export default function RadialChart({
   const gy = useRef<SVGGElement>(null)
 
   const xAxis = useCallback(
-    (g) =>
+    (g: G) =>
       g.attr('text-anchor', 'middle').call((g) =>
         g
           //   .selectAll('g')
@@ -119,15 +121,15 @@ export default function RadialChart({
           //     .attr('x2', outerRadius - innerRadius + 10)
           //     .style('stroke', '#aaa')
           // )
-          .call((g) =>
+          .call((g: G) =>
             g
               .append('text')
               .style('font-family', 'sans-serif')
               .style('font-size', 10)
-              .text((d) => d)
+              .text((d) => d as string)
               .attr(
                 'transform',
-                (d, i, arr) => `
+                () => `
               translate(${-20}, -5)
             `
               )
@@ -137,7 +139,7 @@ export default function RadialChart({
   )
 
   const yAxis = useCallback(
-    (g) =>
+    (g: G) =>
       g
         .attr('text-anchor', 'middle')
         .call((g) =>
@@ -145,7 +147,7 @@ export default function RadialChart({
             .append('text')
             .attr('text-anchor', 'end')
             .attr('x', '-0.5em')
-            .attr('y', (d) => -yScale(yScale.ticks(5).pop() as number) - 10)
+            .attr('y', () => -yScale(yScale.ticks(5).pop() as number) - 10)
             .attr('dy', '-1em')
             .style('fill', '#1a1a1a')
             .text('Wind km/h')

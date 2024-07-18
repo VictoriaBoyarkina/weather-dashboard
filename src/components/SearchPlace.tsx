@@ -12,18 +12,17 @@ interface Props {
 export default function SearchPlace({
   currentPlace,
   onSetCurrentPlace,
-  chart,
 }: Props) {
   const [value, setValue] = useState('')
   const { data, error, getSearchResults } = usePlaces()
   const [resultIsOpen, setResultIsOpen] = useState(false)
 
-  // useEffect(
-  //   function () {
-  //     if (chart) setValue(chart.place.placeName)
-  //   },
-  //   [chart]
-  // )
+  useEffect(
+    function () {
+      setValue(currentPlace?.placeName || '')
+    },
+    [currentPlace]
+  )
 
   const ref = useOutsideClick<HTMLDivElement>(handleClickOutside, true)
 
@@ -65,7 +64,8 @@ export default function SearchPlace({
           {!error && data.length === 0 && (
             <p>No results match your query, try a different term.</p>
           )}
-          {data.length > 0 &&
+          {!error &&
+            data.length > 0 &&
             data.map((place) => (
               <li
                 className="cursor-pointer py-2"

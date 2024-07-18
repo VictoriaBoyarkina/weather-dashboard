@@ -36,19 +36,24 @@ export default function LinearChart({
   ])
 
   // Line function
-  const line = d3
-    .line()
-    .x((d) => x(d.date))
-    .y((d) => y(d.value))
+  const line = d3.line() as d3.Line<RawData>
+  line.x((d) => x(d.date))
+  line.y((d) => y(d.value))
 
-  const gx = useRef<SVGGElement>(null)
-  const gy = useRef<SVGGElement>(null)
+  const gx = useRef<SVGSVGElement>(null)
+  const gy = useRef<SVGSVGElement>(null)
 
-  const xAxis = d3.axisBottom().scale(x)
-  const yAxis = d3.axisLeft().scale(y)
+  const xAxis = d3.axisBottom(x).scale(x)
+  const yAxis = d3.axisLeft(y).scale(y)
 
-  useEffect(() => void d3.select(gx.current).call(xAxis), [xAxis])
-  useEffect(() => void d3.select(gy.current).call(yAxis)[yAxis])
+  useEffect(
+    () => void d3.select(gx.current as SVGSVGElement).call(xAxis),
+    [xAxis]
+  )
+  useEffect(
+    () => void d3.select(gy.current as SVGSVGElement).call(yAxis),
+    [yAxis]
+  )
 
   useEffect(
     () =>
@@ -67,14 +72,14 @@ export default function LinearChart({
   )
   return (
     <svg width={width} height={height}>
-      <path fill="none" stroke="blue" strokeWidth="1.5" d={line(data)} />
+      <path
+        fill="none"
+        stroke="blue"
+        strokeWidth="1.5"
+        d={line(data) as string}
+      />
       <g ref={gx} transform={`translate(0,${height - marginBottom})`} />
       <g ref={gy} transform={`translate(${marginLeft},0)`} />
-      <g fill="white" stroke="blue" strokeWidth="1.5">
-        {data.map((d, i) => (
-          <circle key={i} cx={x(i)} cy={y(d)} r="2.5" />
-        ))}
-      </g>
     </svg>
   )
 }

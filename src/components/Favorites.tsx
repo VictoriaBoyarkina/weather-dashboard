@@ -9,7 +9,7 @@ export default function Favorites({ render }: Props) {
   const { charts } = useLocalStorage()
 
   return (
-    <div className="flex w-[253px] flex-col p-4 border bg-slate-50 border-slate-300 rounded">
+    <div className="flex max-w-2xl flex-col p-4 border bg-slate-50 border-slate-300 rounded">
       <div className="w-full pb-4  border-b border-slate-300">
         <h3 className="font-semibold text-center text-lg text-blue-800">
           Favorite charts

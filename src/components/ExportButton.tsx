@@ -1,20 +1,16 @@
 import * as d3 from 'd3'
-import { Place, RawData } from '../types'
-
+import { Chart } from '../types'
 interface Props {
-  period: [Date, Date]
-  dataType: string
-  place: Place
-  data: RawData[]
+  chart: Chart
 }
 
-export default function ExportButton({ period, dataType, place, data }: Props) {
+export default function ExportButton({ chart }: Props) {
   function handleClick() {
-    const csv = d3.csvFormat(data)
+    const csv = d3.csvFormat(chart.data)
     const blob = new Blob([csv], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.download = `${place.placeName}_${period[0]}-${period[1]}_${dataType}.csv`
+    link.download = `${chart.place.placeName}_${chart.period[0]}-${chart.period[1]}_${chart.dataType}.csv`
     link.href = url
     link.click()
   }

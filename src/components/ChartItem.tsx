@@ -7,8 +7,7 @@ interface Props {
   setDataType: React.Dispatch<React.SetStateAction<DataType>>
   setChart: React.Dispatch<React.SetStateAction<Chart | null>>
   setCurrentPlace: React.Dispatch<React.SetStateAction<Place | null>>
-  setEndDate: React.Dispatch<React.SetStateAction<Date>>
-  setStartDate: React.Dispatch<React.SetStateAction<Date>>
+  setError: React.Dispatch<React.SetStateAction<string>>
 }
 
 const formatTime = d3.utcFormat('%B %d, %Y')
@@ -18,8 +17,7 @@ export default function ChartItem({
   setDataType,
   setChart,
   setCurrentPlace,
-  setStartDate,
-  setEndDate,
+  setError,
 }: Props) {
   const { place, period, dataType } = chart
 
@@ -29,16 +27,15 @@ export default function ChartItem({
   ]
 
   function handleClick() {
-    // setCurrentPlace(chart.place)
+    setCurrentPlace(null)
     setChart(chart)
     setDataType(chart.dataType)
-    // setStartDate(new Date(chart.period[0]))
-    // setEndDate(new Date(chart.period[1]))
+    setError('')
   }
 
   return (
     <li
-      className="text-xs border p-2 border-slate-300 hover:bg-slate-100 cursor-pointer"
+      className="text-sm border p-2 border-slate-300 hover:bg-slate-100 cursor-pointer"
       onClick={handleClick}
     >
       <p>
