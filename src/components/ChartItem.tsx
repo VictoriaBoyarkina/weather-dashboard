@@ -1,6 +1,7 @@
-import * as d3 from 'd3'
+
 import { Chart, DataType, Place } from '../types'
 import capitalizeFirstLetter from '../utils/capitalize'
+import formatTime from '../utils/formateTime'
 
 interface Props {
   chart: Chart
@@ -10,7 +11,7 @@ interface Props {
   setError: React.Dispatch<React.SetStateAction<string>>
 }
 
-const formatTime = d3.utcFormat('%B %d, %Y')
+
 
 export default function ChartItem({
   chart,

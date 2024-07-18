@@ -23,16 +23,24 @@ export default function LinearChart({
   marginBottom = 20,
   marginLeft = 60,
 }: LineChartProps) {
-  const yvalues = charts?.reduce((acc: number[], chart) => {
-    chart.data.forEach((i) => acc.push(i.value))
-    return acc
-  }, [])
+  if (charts?.length > 0) {
+    const yvalues = charts.reduce((acc: number[], chart) => {
+      chart.data.forEach((i) => acc.push(i.value))
+      return acc
+    }, [])
 
-  const y = d3.scaleLinear(d3.extent(yvalues) as [number, number], [
-    height - marginBottom,
-    marginTop,
-  ])
+    const y = d3.scaleLinear(d3.extent(yvalues) as [number, number], [
+      height - marginBottom,
+      marginTop,
+    ])
 
+    // Line function
+    const line = d3.line() as d3.Line<RawData>
+    line.x((d) => x(d.date))
+    line.y((d) => y(d.value))
+    console.log(yvalues)
+  }
+  
   // x axis function
   const xvalues = data.map((i) => i.date)
   const x = d3.scaleTime(d3.extent(xvalues) as [Date, Date], [
@@ -40,12 +48,17 @@ export default function LinearChart({
     width - marginRight,
   ])
 
-  
+  // y axis function
+  const yvalues = data.map((i) => i.value)
+  const y = d3.scaleLinear(d3.extent(yvalues) as [number, number], [
+    height - marginBottom,
+    marginTop,
+  ])
+
   // Line function
   const line = d3.line() as d3.Line<RawData>
   line.x((d) => x(d.date))
   line.y((d) => y(d.value))
-  console.log(yvalues)
 
   const gx = useRef<SVGSVGElement>(null)
   const gy = useRef<SVGSVGElement>(null)

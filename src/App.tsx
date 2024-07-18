@@ -16,6 +16,10 @@ import { useLocalStorage } from './context/LocalStorageProvider'
 import uniqid from 'uniqid'
 
 import ChartHeaders from './components/ChartHeaders'
+import AddButton from './components/AddButton'
+import ChartsList from './components/ChartsList'
+import ChartsListItem from './components/ChartsListItem'
+import { addDays, subtractDays } from './utils/countDays'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -63,6 +67,9 @@ function App() {
   // Loading
   const [isLoading, setIsloading] = useState(false)
 
+  // Charts
+  const [charts, setCharts] = useState<Chart[]>([])
+
   // Current chart
   const [chart, setChart] = useState<Chart | null>(null)
 
@@ -76,6 +83,17 @@ function App() {
       }
     },
     [dataType, chart, currentPlace]
+  )
+
+  useEffect(
+    function () {
+      if (charts.length > 0) {
+        const period = subtractDays(charts[0].period[0], charts[0].period[1])
+        const endDate = addDays(startDate, period)
+        setEndDate(endDate)
+      }
+    },
+    [charts]
   )
 
   useEffect(() => {
@@ -96,6 +114,8 @@ function App() {
             dataType,
             place: currentPlace!,
             data,
+            id: uniqid(),
+            favorite: false,
           }
           setChart(chart)
         } catch {
@@ -112,19 +132,21 @@ function App() {
   const { saveChart, deleteChart } = useLocalStorage()
 
   function handleSave() {
-    chart!.id = uniqid()
-    saveChart(chart!)
+    saveChart({ ...chart!, favorite: true })
   }
 
   function handleDelete() {
-    const newChart = {
-      period: chart!.period,
-      dataType: chart!.dataType,
-      place: chart!.place,
-      data: chart!.data,
-    }
-    setChart(newChart)
+    setChart({ ...chart!, favorite: false })
     deleteChart(chart?.id)
+  }
+
+  function handleAdd() {
+    setCharts([...charts!, chart!])
+  }
+
+  function deleteFromChart(id: string) {
+    const filterdCharts = charts.filter((i) => i.id !== id)
+    setCharts(filterdCharts)
   }
 
   return (
@@ -153,20 +175,35 @@ function App() {
             {chart && chart?.data?.length !== 0 && (
               <>
                 <ChartHeaders chart={chart!} />
-                <>
+                <div>
                   {dataType === 'temperature' && (
-                    <LinearChart data={chart!.data} />
+                    <LinearChart charts={charts} data={chart!.data} />
                   )}
                   {dataType === 'wind' && <RadialChart data={chart!.data} />}
                   {dataType === 'precipitation' && (
                     <Histogram data={chart!.data} />
                   )}
-                </>
+                  {charts.length > 0 && (
+                    <div className="ml-[60px] mt-5 max-w-[600px]">
+                      <ChartsList
+                        charts={charts}
+                        render={(item: Chart) => (
+                          <ChartsListItem
+                            deleteFromChart={deleteFromChart}
+                            chart={item}
+                            key={item.id}
+                          />
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
                 <div className="flex w-full ml-[60px] gap-x-5">
                   <ExportButton chart={chart} />
                   <SaveButton onClick={chart.id ? handleDelete : handleSave}>
                     {chart.id ? 'Delete chart' : 'Save chart'}
                   </SaveButton>
+                  <AddButton onClick={handleAdd}>Add to compare</AddButton>
                 </div>
               </>
             )}
@@ -175,6 +212,7 @@ function App() {
       </main>
       <aside className="row-span-6 col-span-2 p-5 gap-y-7 flex flex-col items-center">
         <DateRangePicker
+          disabled={charts.length > 0}
           startDate={startDate}
           endDate={endDate}
           setStartDate={setStartDate}
