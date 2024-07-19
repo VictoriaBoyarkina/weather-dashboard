@@ -36,6 +36,7 @@ export default function DataTypeSelector({ dataType, setDataType }: Props) {
     <ul className="grid w-10/12  gap-6 md:grid-cols-3">
       {dataTypes.map((data) => (
         <DataSelectorItem
+          type="dataType"
           data={data}
           key={data.label}
           selected={dataType == data.value}

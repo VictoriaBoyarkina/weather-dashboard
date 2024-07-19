@@ -17,7 +17,7 @@ function ChartsListItem({ chart, deleteFromChart }: Props) {
   ]
 
   return (
-    <li className="text-sm">
+    <li>
       <div className="flex items-center">
         {place.placeName}, {start} - {end}, {capitalizeFirstLetter(dataType)}
         <span

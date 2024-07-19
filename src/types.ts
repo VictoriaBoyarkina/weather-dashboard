@@ -19,3 +19,10 @@ export type Chart = {
 }
 
 export type DataType = 'temperature' | 'wind' | 'precipitation'
+
+export type ChartType = 'linear' | 'histogram' | 'radial'
+
+export type NestedData = {
+  key: string
+  values: RawData[]
+}

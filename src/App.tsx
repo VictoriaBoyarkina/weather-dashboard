@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SearchPlace from './components/SearchPlace'
-import { Chart, DataType, Place, RawData } from './types'
+import { Chart, ChartType, DataType, Place, RawData } from './types'
 import DataTypeSelector from './components/DataTypeSelector'
 import DateRangePicker from './components/DateRangePicker'
 import { fetchWeatherData } from './services/weatherAPI'
@@ -8,7 +8,6 @@ import LinearChart from './components/LinearChart'
 import Histogram from './components/Histogram'
 import RadialChart from './components/RadialChart'
 import ExportButton from './components/ExportButton'
-import Loader from './components/Loader'
 import SaveButton from './components/SaveButton'
 import Favorites from './components/Favorites'
 import ChartItem from './components/ChartItem'
@@ -21,6 +20,7 @@ import ChartsList from './components/ChartsList'
 import ChartsListItem from './components/ChartsListItem'
 import { addDays, subtractDays } from './utils/countDays'
 import SearchButton from './components/SearchButton'
+import ChartSelector from './components/ChartSelector'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -65,6 +65,9 @@ function App() {
   // Data type
   const [dataType, setDataType] = useState<DataType>('temperature')
 
+  // Chart type
+  const [chartType, setChartType] = useState<ChartType>('linear')
+
   // Loading
   const [isLoading, setIsloading] = useState(false)
 
@@ -76,15 +79,6 @@ function App() {
 
   // Error
   const [error, setError] = useState('')
-
-  useEffect(
-    function () {
-      if (chart && chart?.dataType !== dataType) {
-        setChart(null)
-      }
-    },
-    [dataType, chart, currentPlace]
-  )
 
   useEffect(
     function () {
@@ -147,6 +141,8 @@ function App() {
     setCharts(filterdCharts)
   }
 
+  console.log(chart)
+
   return (
     <div className="grid grid-rows-6 grid-cols-6 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
       <header className="row-span-1 col-span-5 px-5">
@@ -158,62 +154,83 @@ function App() {
           />
           <div className="flex justify-between">
             <DataTypeSelector dataType={dataType} setDataType={setDataType} />
-            <SearchButton onClick={fetchData}>Get data</SearchButton>
+            <SearchButton isLoading={isLoading} onClick={fetchData}>
+              Get data
+            </SearchButton>
           </div>
         </div>
       </header>
 
       <main className="row-span-5 col-span-5 px-5 text-slate-500">
-        {isLoading ? (
-          <Loader />
-        ) : (
-          <div className="flex flex-col gap-y-6">
-            {error && <p>{error}</p>}
-            {!currentPlace && !chart && <p>Please, choose location</p>}
-            {currentPlace && chart?.data.length === 0 && (
-              <p>Could find any data</p>
-            )}
+        <ChartSelector chartType={chartType} setChartType={setChartType} />
+        <div className="flex flex-col py-6 gap-y-6">
+          {error && <p>{error}</p>}
+          {!currentPlace && !chart && <p>Please, choose location</p>}
+          {currentPlace && chart?.data.length === 0 && (
+            <p>Could find any data</p>
+          )}
 
-            {chart && chart?.data?.length !== 0 && (
-              <>
-                <ChartHeaders chart={chart!} />
-                <div className="flex">
-                  {dataType === 'temperature' && (
+          {chart && chart?.data?.length !== 0 && (
+            <>
+              <div className="flex">
+                <div>
+                  {chartType === 'linear' && (
                     <>
                       <LinearChart charts={[]} chart={chart} />
-                      {charts.length > 0 && (
-                        <div className="ml-[60px] mt-5 max-w-[600px]">
-                          <ChartsList
-                            charts={charts}
-                            render={(item: Chart) => (
-                              <ChartsListItem
-                                deleteFromChart={deleteFromChart}
-                                chart={item}
-                                key={item.id}
-                              />
-                            )}
-                          />
-                          <LinearChart charts={charts} chart={chart} />
-                        </div>
-                      )}
                     </>
                   )}
-                  {dataType === 'wind' && <RadialChart data={chart!.data} />}
-                  {dataType === 'precipitation' && (
-                    <Histogram data={chart!.data} />
+                  {chartType === 'radial' && <RadialChart data={chart!.data} />}
+                  {chartType === 'histogram' && (
+                    <Histogram chart={chart} charts={[]} />
+                  )}
+                  <div className="mt-4 ml-14">
+                    <ChartHeaders chart={chart!} />
+                  </div>
+                </div>
+                <div>
+                  {charts.length > 0 && (
+                    <div className="">
+                      {chartType === 'linear' && (
+                        <>
+                          <LinearChart charts={charts} chart={chart} />
+                        </>
+                      )}
+                      {chartType === 'radial' && (
+                        <RadialChart data={chart!.data} />
+                      )}
+                      {chartType === 'histogram' && (
+                        <Histogram charts={charts} chart={chart} />
+                      )}
+                      <div className="mt-4 ml-14">
+                        <ChartsList
+                          charts={charts}
+                          render={(item: Chart) => (
+                            <ChartsListItem
+                              deleteFromChart={deleteFromChart}
+                              chart={item}
+                              key={item.id}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
-                <div className="flex w-full ml-[60px] gap-x-5">
-                  <ExportButton chart={chart} />
-                  <SaveButton onClick={chart.id ? handleDelete : handleSave}>
-                    {chart.id ? 'Delete chart' : 'Save chart'}
-                  </SaveButton>
+              </div>
+              <div className="flex w-full ml-[60px] gap-x-5">
+                <ExportButton chart={chart} />
+                <SaveButton
+                  onClick={chart.favorite ? handleDelete : handleSave}
+                >
+                  {chart.favorite ? 'Delete chart' : 'Save chart'}
+                </SaveButton>
+                {!charts.find((i) => i.id === chart.id) && (
                   <AddButton onClick={handleAdd}>Add to compare</AddButton>
-                </div>
-              </>
-            )}
-          </div>
-        )}
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </main>
       <aside className="row-span-6 col-span-1 p-5 gap-y-7 flex flex-col items-center">
         <DateRangePicker

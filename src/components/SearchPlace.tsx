@@ -59,7 +59,7 @@ export default function SearchPlace({
         className="py-2 px-1 w-full bg-transparent border-b border-slate-300 text-blue-700 font-semibold focus:border-weather-secondary focus:outline-none focus:shadow mb-3"
       />
       {resultIsOpen && (
-        <ul className="absolute bg-slate-600 text-white w-full shadow-md py-2 px-1 top-[66px]">
+        <ul className="absolute z-50 bg-slate-600 text-white w-full shadow-md py-2 px-1 top-[66px]">
           {error && <p>Sorry, something went wrong, please try again.</p>}
           {!error && data.length === 0 && (
             <p>No results match your query, try a different term.</p>

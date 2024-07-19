@@ -10,15 +10,21 @@ interface Props {
   data: DataType
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
   selected?: boolean
+  type: string
 }
 
-export default function DataSelectorItem({ data, onChange, selected }: Props) {
+export default function DataSelectorItem({
+  data,
+  type,
+  onChange,
+  selected,
+}: Props) {
   return (
     <li>
       <input
         type="radio"
         id={data.value}
-        name="dataType"
+        name={type}
         value={data.value}
         className="hidden peer"
         required

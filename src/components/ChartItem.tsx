@@ -29,7 +29,7 @@ export default function ChartItem({
   ]
 
   function handleClick() {
-    setCurrentPlace(null)
+    setCurrentPlace(chart.place)
     setChart(chart)
     setDataType(chart.dataType)
     setError('')

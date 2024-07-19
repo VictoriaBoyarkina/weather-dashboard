@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import { useEffect, useRef } from 'react'
-import { Chart, RawData } from '../types'
-import formatTime from '../utils/formateTime'
+import { Chart, NestedData, RawData } from '../types'
+import formatData from '../utils/formatData'
 
 type LineChartProps = {
   chart: Chart
@@ -12,26 +12,6 @@ type LineChartProps = {
   marginRight?: number
   marginBottom?: number
   marginLeft?: number
-}
-
-type Data = {
-  key: string
-  values: RawData[]
-}
-
-function formatData(data: Chart[]) {
-  const formattedData = data.reduce((acc: Data[], chart) => {
-    const key = `Location: ${chart.place.placeName}, Period: ${formatTime(
-      new Date(chart.period[0])
-    )} - ${formatTime(new Date(chart.period[1]))}`
-    const obj = {
-      key: key,
-      values: chart.data,
-    }
-    acc.push(obj)
-    return acc
-  }, [])
-  return formattedData
 }
 
 export default function LinearChart({
@@ -46,13 +26,20 @@ export default function LinearChart({
 }: LineChartProps) {
   const formattedData = formatData(charts)
 
-  const multiple =
-    charts.length > 1 && chart.id === charts[charts.length - 1].id
+  const period = charts[0]?.period
+  let samePeriod = true
 
-  console.log(chart)
-  console.log(charts[charts.length - 1])
+  charts?.forEach((chart) => {
+    if (
+      JSON.stringify(chart.period[0]).slice(1, 11) !==
+        JSON.stringify(period[0]).slice(1, 11) ||
+      JSON.stringify(chart.period[1]).slice(1, 11) !==
+        JSON.stringify(period[1]).slice(1, 11)
+    )
+      samePeriod = false
+  })
 
-  console.log(multiple)
+  const multiple = charts.length > 0
 
   const yvalues = multiple
     ? charts?.reduce((acc: number[], chart) => {
@@ -67,11 +54,16 @@ export default function LinearChart({
   ])
 
   // x axis function
-  const xvalues = chart.data.map((i) => i.date)
-  const x = d3.scaleTime(d3.extent(xvalues) as [Date, Date], [
-    marginLeft,
-    width - marginRight,
-  ])
+  const xvalues = multiple
+    ? charts[0].data.map((i) => i.date)
+    : chart.data.map((i) => i.date)
+
+  const x = samePeriod
+    ? d3.scaleTime(d3.extent(xvalues) as [Date, Date], [
+        marginLeft,
+        width - marginRight,
+      ])
+    : d3.scaleLinear([0, xvalues.length], [marginLeft, width - marginRight])
 
   const color = d3.scaleOrdinal(d3.schemeCategory10)
 
@@ -79,7 +71,13 @@ export default function LinearChart({
 
   // Line function
   const line = (d3.line() as d3.Line<RawData>)
-    .x((d) => x(d.date))
+    .x((d, i) => {
+      if (!samePeriod && charts.length > 0) {
+        console.log(x(i))
+        return x(i)
+      }
+      return x(d.date)
+    })
     .y((d) => y(d.value))
     .curve(d3.curveBumpX)
 
@@ -99,7 +97,7 @@ export default function LinearChart({
         .attr('stroke', function (d) {
           return color(d.key)
         })
-        .attr('d', function (d: Data) {
+        .attr('d', function (d: NestedData) {
           return line(d.values)
         })
         .on('mouseover', (event, d) => {
@@ -108,7 +106,7 @@ export default function LinearChart({
           tooltip
             .html(d.key)
             .style('left', `${200}px`)
-            .style('top', `${event.pageY - 400}px`)
+            .style('top', `${event.pageY - 200}px`)
         })
         .on('mouseout', () => {
           const tooltip = d3.select(tooltipRef.current)

@@ -7,7 +7,7 @@ interface Props {
 }
 
 function ChartsList({ charts, render }: Props) {
-  return <ul className=''>{charts.map(render)}</ul>
+  return <ul className="flex flex-col gap-y-3">{charts.map(render)}</ul>
 }
 
 export default ChartsList

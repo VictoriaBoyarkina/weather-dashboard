@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { Chart } from '../types'
 import {
   createContext,
@@ -41,11 +42,21 @@ export default function LocalStorageProvider({ children }: Props) {
     const favoriteCharts = localStorage.getItem('favorite')
     const array = favoriteCharts ? JSON.parse(favoriteCharts) : []
     const duplicate = array.find((item: Chart[]) => {
-      const newItem = { ...item, id: 'id' }
-      const newChart = { ...chart, id: 'id' }
+      const newItem = { ...item, id: '', favorite: '' }
+      const newChart = { ...chart, id: '', favorite: '' }
       return JSON.stringify(newItem) === JSON.stringify(newChart)
     })
-    if (duplicate) return
+    if (duplicate) {
+      toast('This chart has already been added to favorites', {
+        style: {
+          border: '1px solid #1847ad',
+          padding: '6px',
+          color: '#1847ad',
+          textAlign: 'center',
+        },
+      })
+      return
+    }
     array.push(chart)
     localStorage.setItem('favorite', JSON.stringify(array))
     array.forEach((chart: Chart) =>
