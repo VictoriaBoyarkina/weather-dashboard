@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import { useCallback, useEffect, useRef } from 'react'
 import { RawData } from '../types'
+import formatTime from '../utils/formateTime'
 
 type G = d3.Selection<SVGGElement | null, unknown, null, undefined>
 
@@ -66,8 +67,6 @@ export default function RadialChart({
   const container = useRef<SVGGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
 
-  const dateFormatter = d3.timeFormat('%b %d')
-
   useEffect(() => {
     const svg = d3.select(container.current)
     svg.selectAll('*').remove()
@@ -84,18 +83,18 @@ export default function RadialChart({
         tooltip.transition().duration(200).style('opacity', 0.9)
         tooltip
           .html(
-            `<strong>Date:</strong> ${dateFormatter(
+            `<strong>Date:</strong> ${formatTime(
               d.date
             )}<br><strong>Value:</strong> ${d.value}`
           )
           .style('left', `${event.pageX}px`)
-          .style('top', `${event.pageY - 120}px`)
+          .style('top', `${event.pageY - 400}px`)
       })
       .on('mouseout', () => {
         const tooltip = d3.select(tooltipRef.current)
         tooltip.transition().duration(500).style('opacity', 0)
       })
-  }, [arc, color, data, dateFormatter])
+  }, [arc, color, data])
 
   const gx = useRef<SVGGElement>(null)
   const gy = useRef<SVGGElement>(null)

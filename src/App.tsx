@@ -20,6 +20,7 @@ import AddButton from './components/AddButton'
 import ChartsList from './components/ChartsList'
 import ChartsListItem from './components/ChartsListItem'
 import { addDays, subtractDays } from './utils/countDays'
+import SearchButton from './components/SearchButton'
 
 const dataTypeMapping = {
   temperature: 'temperature_2m_mean',
@@ -93,41 +94,38 @@ function App() {
         setEndDate(endDate)
       }
     },
-    [charts]
+    [charts, startDate]
   )
 
-  useEffect(() => {
-    async function fetchData() {
-      setError('')
-      if (currentPlace) {
-        setIsloading(true)
-        try {
-          const res = await fetchWeatherData(
-            startDate,
-            endDate,
-            currentPlace.coordinates,
-            dataType
-          )
-          const data = formatData(dataType, res)
-          const chart = {
-            period: [startDate, endDate] as [Date, Date],
-            dataType,
-            place: currentPlace!,
-            data,
-            id: uniqid(),
-            favorite: false,
-          }
-          setChart(chart)
-        } catch {
-          setError("Couldn't fetch the data")
-          setChart(null)
-        } finally {
-          setIsloading(false)
+  async function fetchData() {
+    setError('')
+    if (currentPlace) {
+      setIsloading(true)
+      try {
+        const res = await fetchWeatherData(
+          startDate,
+          endDate,
+          currentPlace.coordinates,
+          dataType
+        )
+        const data = formatData(dataType, res)
+        const chart = {
+          period: [startDate, endDate] as [Date, Date],
+          dataType,
+          place: currentPlace!,
+          data,
+          id: uniqid(),
+          favorite: false,
         }
+        setChart(chart)
+      } catch {
+        setError("Couldn't fetch the data")
+        setChart(null)
+      } finally {
+        setIsloading(false)
       }
     }
-    fetchData()
-  }, [currentPlace, startDate, endDate, dataType])
+  }
 
   const { saveChart, deleteChart } = useLocalStorage()
 
@@ -151,18 +149,21 @@ function App() {
 
   return (
     <div className="grid grid-rows-6 grid-cols-6 grid-flow-col gap-4 min-h-screen bg-slate-100 font-Roboto">
-      <header className="row-span-1 col-span-4 px-5">
+      <header className="row-span-1 col-span-5 px-5">
         <div className="flex flex-col">
           <SearchPlace
             currentPlace={currentPlace}
             onSetCurrentPlace={setCurrentPlace}
             chart={chart}
           />
-          <DataTypeSelector dataType={dataType} setDataType={setDataType} />
+          <div className="flex justify-between">
+            <DataTypeSelector dataType={dataType} setDataType={setDataType} />
+            <SearchButton onClick={fetchData}>Get data</SearchButton>
+          </div>
         </div>
       </header>
 
-      <main className="row-span-5 col-span-4 px-5 text-slate-500">
+      <main className="row-span-5 col-span-5 px-5 text-slate-500">
         {isLoading ? (
           <Loader />
         ) : (
@@ -172,30 +173,34 @@ function App() {
             {currentPlace && chart?.data.length === 0 && (
               <p>Could find any data</p>
             )}
+
             {chart && chart?.data?.length !== 0 && (
               <>
                 <ChartHeaders chart={chart!} />
-                <div>
+                <div className="flex">
                   {dataType === 'temperature' && (
-                    <LinearChart charts={charts} data={chart!.data} />
+                    <>
+                      <LinearChart charts={[]} chart={chart} />
+                      {charts.length > 0 && (
+                        <div className="ml-[60px] mt-5 max-w-[600px]">
+                          <ChartsList
+                            charts={charts}
+                            render={(item: Chart) => (
+                              <ChartsListItem
+                                deleteFromChart={deleteFromChart}
+                                chart={item}
+                                key={item.id}
+                              />
+                            )}
+                          />
+                          <LinearChart charts={charts} chart={chart} />
+                        </div>
+                      )}
+                    </>
                   )}
                   {dataType === 'wind' && <RadialChart data={chart!.data} />}
                   {dataType === 'precipitation' && (
                     <Histogram data={chart!.data} />
-                  )}
-                  {charts.length > 0 && (
-                    <div className="ml-[60px] mt-5 max-w-[600px]">
-                      <ChartsList
-                        charts={charts}
-                        render={(item: Chart) => (
-                          <ChartsListItem
-                            deleteFromChart={deleteFromChart}
-                            chart={item}
-                            key={item.id}
-                          />
-                        )}
-                      />
-                    </div>
                   )}
                 </div>
                 <div className="flex w-full ml-[60px] gap-x-5">
@@ -210,7 +215,7 @@ function App() {
           </div>
         )}
       </main>
-      <aside className="row-span-6 col-span-2 p-5 gap-y-7 flex flex-col items-center">
+      <aside className="row-span-6 col-span-1 p-5 gap-y-7 flex flex-col items-center">
         <DateRangePicker
           disabled={charts.length > 0}
           startDate={startDate}
@@ -227,6 +232,8 @@ function App() {
               setDataType={setDataType}
               setChart={setChart}
               setError={setError}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
             />
           )}
         />
